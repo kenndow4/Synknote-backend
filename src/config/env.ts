@@ -4,8 +4,9 @@ import dotenv from "dotenv";
 dotenv.config();
 
 
-const {PORT} = process.env;
+const { PORT, DATABASE_URL } = process.env;
 
 export default {
-    port: PORT
+    port: PORT,
+    database_url: DATABASE_URL,
 }
