@@ -35,7 +35,9 @@ export const signUp = async (req: Request, res: Response) => {
     await newUser.save();
     return res.status(201).json({
       message: "User created successfully",
-      user: newUser,
+      id: newUser._id,
+      user: newUser.username,
+      email: newUser.email,
     });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
