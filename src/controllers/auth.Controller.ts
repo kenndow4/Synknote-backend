@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import userModel from "../model/auth.model";
 import argon2 from "argon2";
+import { Token } from "../utils/token";
 
 export const signUp = async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
@@ -43,3 +44,28 @@ export const signUp = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+//Login
+
+export const  signin = async(req:Request, res:Response) => {
+  const {email, password} = req.body;
+
+  if(!email || !password) return res.status(400).json({message: "All fields are required"});
+
+  try{
+    // const user = await userModel.findOne({email});
+    // if(!user) return res.status(401).json({message: "Invalid credentials"});
+ const token = Token.generate({
+  id:"124334234",
+  email
+ });
+
+ return res.json({token});
+
+  }catch(e){
+    return res.status(500).json({ message: "Internal server error" });
+  }
+
+
+}
