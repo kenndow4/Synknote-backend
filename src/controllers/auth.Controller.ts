@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import userModel from "../model/auth.model";
 import argon2 from "argon2";
+import { Hash } from "../utils/hash";
+import { AuthService } from "../services/auth.service";
 
 export const signUp = async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
@@ -24,7 +26,7 @@ export const signUp = async (req: Request, res: Response) => {
 
   try {
     // Hash the password
-    const passwordhash = await argon2.hash(password);
+    const passwordhash = await Hash.hash(password);
 
     // Create new user
     const newUser = new userModel({
@@ -40,6 +42,38 @@ export const signUp = async (req: Request, res: Response) => {
       email: newUser.email,
     });
   } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+//Login
+
+export const signin = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+
+  if (!email || !password)
+    return res.status(400).json({ message: "All fields are required" });
+
+  try {
+    const result = await AuthService.signin(email, password);
+
+    if (!result.ok) {
+      if (
+        result.reason === "EMAIL_NOT_FOUND" ||
+        result.reason === "INVALID_PASSWORD"
+      ) {
+        return res.status(404).json({
+          message: "Password or Email incorrect",
+        });
+      }
+
+      return res.status(400).json({
+        message: "Invalid credentials",
+      });
+    }
+
+    return res.status(200).json(result);
+  } catch (e) {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
