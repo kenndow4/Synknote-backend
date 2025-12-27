@@ -3,6 +3,7 @@ import { UserRepository } from "../Repository/auth.repository";
 import { UserPayload } from "../types/user";
 import { Hash } from "../utils/hash";
 import { Token } from "../utils/token";
+import generateAvatar from "../utils/avatar";
 
 export class AuthService {
   static async signup(username: string, email: string, password: string) {
@@ -24,11 +25,12 @@ export class AuthService {
 
     try {
       const passwordHash = await Hash.hash(password);
-
+      const avatar = generateAvatar.generate(username);
       const newUser = await UserRepository.createUSer({
         username,
         email,
         password: passwordHash,
+        avatar,
       });
 
       await newUser.save();
@@ -43,6 +45,7 @@ export class AuthService {
         id: newUser._id.toString(),
         user: newUser.username,
         email: newUser.email,
+        avatar,
         token,
       };
     } catch (error) {

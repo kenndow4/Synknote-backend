@@ -1,8 +1,10 @@
 import userModel from "../model/auth.model";
+
 interface User {
   username: string;
   email: string;
   password: string;
+  avatar: string;
 }
 
 export class UserRepository {
