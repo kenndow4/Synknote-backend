@@ -1,48 +1,25 @@
 import { Request, Response } from "express";
-import userModel from "../model/auth.model";
-import argon2 from "argon2";
-import { Hash } from "../utils/hash";
+
 import { AuthService } from "../services/auth.service";
 
 export const signUp = async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
 
-  if (!username || !email || !password)
-    return res.status(400).json({ message: "All fields are required" });
-  if (username.length < 3)
-    return res
-      .status(400)
-      .json({ message: "Name must have at least 3 characters" });
-  if (!email.includes("@"))
-    return res.status(400).json({ message: "Email must be a real email" });
-  if (password.length < 6)
-    return res.status(400).json({
-      message: "Password must have at least 6 characters",
-    });
-  // Check if user already exists
-  const userExists = await userModel.findOne({ email });
-  if (userExists)
-    return res.status(409).json({ message: "Email already registered" });
-
   try {
-    // Hash the password
-    const passwordhash = await Hash.hash(password);
+    const result = await AuthService.signup(username, email, password);
 
-    // Create new user
-    const newUser = new userModel({
-      username,
-      email,
-      password: passwordhash,
-    });
-    await newUser.save();
-    return res.status(201).json({
-      message: "User created successfully",
-      id: newUser._id,
-      user: newUser.username,
-      email: newUser.email,
-    });
+    if (!result.ok) {
+      return res.status(400).json(result);
+    }
+
+    return res.status(201).json(result);
   } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+    console.error("CONTROLLER ERROR 👉", error);
+
+    return res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : error,
+    });
   }
 };
 
