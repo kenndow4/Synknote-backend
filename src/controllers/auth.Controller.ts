@@ -1,20 +1,56 @@
 import { Request, Response } from "express";
 
-export const signUp = (req: Request, res: Response) => {
-  const { name, email, password } = req.body;
+import { AuthService } from "../services/auth.service";
 
-  if (!name || !email || !password)
-    return res.status(400).json({ message: "All fiel are required" });
-  if (name.length < 3)
-    return res
-      .status(400)
-      .json({ message: "Name must have ar least 3 characters" });
-  if (!email.includes("@"))
-    return res.status(400).json({ message: "Email must be a real email" });
-  if (password.length < 6)
-    return res
-      .status(400)
-      .json({ message: "Password Must have at least 6 characters" });
+export const signUp = async (req: Request, res: Response) => {
+  const { username, email, password } = req.body;
 
-  return res.json({ name, email, password });
+  try {
+    const result = await AuthService.signup(username, email, password);
+
+    if (!result.ok) {
+      return res.status(400).json(result);
+    }
+
+    return res.status(201).json(result);
+  } catch (error) {
+    console.error("CONTROLLER ERROR 👉", error);
+
+    return res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : error,
+    });
+  }
+};
+
+//Login
+
+export const signin = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+
+  if (!email || !password)
+    return res.status(400).json({ message: "All fields are required" });
+
+  try {
+    const result = await AuthService.signin(email, password);
+
+    if (!result.ok) {
+      if (
+        result.reason === "EMAIL_NOT_FOUND" ||
+        result.reason === "INVALID_PASSWORD"
+      ) {
+        return res.status(404).json({
+          message: "Password or Email incorrect",
+        });
+      }
+
+      return res.status(400).json({
+        message: "Invalid credentials",
+      });
+    }
+
+    return res.status(200).json(result);
+  } catch (e) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
 };
